@@ -1,56 +1,114 @@
-import React from 'react'
-import './Main.css'
-import { assets } from '../../assets/assets'
+import React, { useContext } from "react";
+import "./Main.css";
+import { assets } from "../../assets/assets";
+import { Context } from "../../context/Context";
 
 const Main = () => {
+  const {
+    onSent,
+    recentPrompt,
+    showResult,
+    loading,
+    resultData,
+    setInput,
+    input,
+  } = useContext(Context);
+
+  const handleSend = () => {
+    if (input.trim()) {
+      onSent();
+    }
+  };
+
   return (
-    <div className='main'>
-      <div className='nav'>
+    <div className="main">
+      <div className="nav">
         <p>NovaMind</p>
-        <img src={assets.user_icon} alt="" />
+        <img src={assets.user_icon} alt="User Icon" />
       </div>
-      <div className='main-container'>
-        <div className='greet'>
-            <p><span>Hey, ShanDev.</span></p>
-            <p>Welcome to NovaMind workspace!<br/>
-            How can I help you today?</p>
-        </div>
-        <div className='cards'>
-            <div className='card'>
-                <p>Suggest beautigul palces to see on an upcoming trip</p>
-                <img src={assets.compass_icon} alt="" />
+      <div className="main-container">
+        {!showResult ? (
+          <>
+            <div className="greet">
+              <p>
+                <span>Hey, ShanDev.</span>
+              </p>
+              <p>
+                Welcome to NovaMind workspace!
+                <br />
+                How can I help you today?
+              </p>
             </div>
-            <div className='card'>
-                <p>Briefly summarize this concept: urban planning</p>
-                <img src={assets.bulb_icon} alt="" />
-            </div>
-            <div className='card'>
-                <p>Brainstorm team bonding activities for our work retreat</p>
-                <img src={assets.message_icon} alt="" />
-            </div>
-            <div className='card'>
-                <p>Improve the readability of follwing code</p>
-                <img src={assets.code_icon} alt="" />
-            </div>
-        </div>
-        <div className='main-bottom'>
-            <div className='search-box'>
-                <input type='text' placeholder="Provide your request, and I'll simplify or reword it!" />
-                <div>
-                    <img src={assets.gallery_icon} alt="" />
-                    <img src={assets.mic_icon} alt="" />
-                    <img src={assets.send_icon} alt="" />
+            <div className="cards">
+              {[
+                {
+                  text: "Suggest beautiful places to visit.",
+                  icon: assets.compass_icon,
+                },
+                { text: "Summarize: urban planning.", icon: assets.bulb_icon },
+                {
+                  text: "Team bonding activities for work.",
+                  icon: assets.message_icon,
+                },
+                {
+                  text: "Improve readability of code.",
+                  icon: assets.code_icon,
+                },
+              ].map((card, idx) => (
+                <div
+                  key={idx}
+                  className="card"
+                  onClick={() => setInput(card.text)}
+                >
+                  <p>{card.text}</p>
+                  <img src={card.icon} alt="Card Icon" />
                 </div>
+              ))}
             </div>
-            <p className='bottom-info'>
-                <span>Powered by NovaMind AI | </span>
-                <span>Version 1.0.0 | </span>
-                <span>Made with by ShanDev(SoloCoder)</span>
-            </p>
+          </>
+        ) : (
+          <div className="result">
+            <div className="result-title">
+              <img src={assets.user_icon} alt="User Icon" />
+              <p>{recentPrompt}</p>
+            </div>
+            <div className="result-content">
+              <img src={assets.gemini_icon} alt="Gemini Icon" />
+              {loading ? (
+                <p>Loading...</p>
+              ) : (
+                <p dangerouslySetInnerHTML={{ __html: resultData }}></p>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="main-bottom">
+          <div className="search-box">
+            <input
+              onChange={(e) => setInput(e.target.value)}
+              value={input}
+              type="text"
+              placeholder="Enter your request..."
+            />
+            <div>
+              <img src={assets.gallery_icon} alt="Gallery Icon" />
+              <img src={assets.mic_icon} alt="Mic Icon" />
+              <img
+                onClick={handleSend}
+                src={assets.send_icon}
+                alt="Send Icon"
+              />
+            </div>
+          </div>
+          <p className="bottom-info">
+            <span>Powered by NovaMind AI | </span>
+            <span>Version 1.0.0 | </span>
+            <span>Made by ShanDev</span>
+          </p>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Main
+export default Main;
