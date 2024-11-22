@@ -3,7 +3,7 @@ import run from "../config/gemini";
 
 export const Context = createContext();
 
-const ContextProvider = (props) => {
+const ContextProvider = ({ children }) => {
   const [input, setInput] = useState("");
   const [recentPrompt, setRecentPrompt] = useState("");
   const [prevPrompts, setPrevPrompts] = useState([]);
@@ -11,50 +11,55 @@ const ContextProvider = (props) => {
   const [loading, setLoading] = useState(false);
   const [resultData, setResultData] = useState("");
 
+  // Function to append text with a delay for animation effect
   const delayPara = (index, nextWord) => {
+    if (!nextWord) return; // Ensure no invalid text is appended
     setTimeout(() => {
       setResultData((prev) => prev + nextWord);
     }, 75 * index);
   };
 
-  const onSent = async () => {
-    if (!input.trim()) return; // Prevent empty prompts
+  const newChat = () => {
+    setLoading(false);
+    setShowResult(false);
+  };
+
+  const onSent = async (prompt = input) => {
+    if (!prompt.trim()) return; // Prevent sending empty prompts
+
+    // Reset states for new input
     setResultData("");
     setLoading(true);
     setShowResult(true);
-    setRecentPrompt(input);
 
     try {
-      const response = await run(input);
-      if (!response) throw new Error("Empty response from run function");
+      // Add prompt to history and update the recent prompt
+      setPrevPrompts((prev) => [...prev, prompt]);
+      setRecentPrompt(prompt);
 
-      // Parse and format response
+      // Fetch the response
+      const response = await run(prompt);
+      if (!response)
+        throw new Error("Received an empty response from the `run` function.");
+
+      // Format the response
       const responseArray = response.split("**");
-      let newResponse = ""; // Initialize to avoid 'undefined' concatenation
-      for (let x = 0; x < responseArray.length; x++) {
-        if (x % 2 === 1) {
-          newResponse += "<b>" + responseArray[x] + "</b>";
-        } else {
-          newResponse += responseArray[x];
-        }
-      }
-
-      const formattedResponse = newResponse.replace(/\*/g, "</br>");
+      const formattedResponse = responseArray
+        .map((chunk, i) => (i % 2 === 1 ? `<b>${chunk}</b>` : chunk))
+        .join("")
+        .replace(/\*/g, "</br>");
       const responseWords = formattedResponse.split(" ");
 
-      // Animate words with delay
+      // Animate the response word by word
       responseWords.forEach((word, index) => {
-        delayPara(index, word + " ");
+        delayPara(index, `${word} `);
       });
-
-      // Update prompt history
-      setPrevPrompts((prev) => [...prev, input]);
     } catch (error) {
-      console.error("Error in onSent:", error);
-      setResultData("Failed to fetch response. Please try again.");
+      console.error("Error in onSent:", error.message || error);
+      setResultData("Failed to fetch a response. Please try again.");
     } finally {
       setLoading(false);
-      setInput("");
+      setInput(""); // Clear the input field after processing
     }
   };
 
@@ -69,11 +74,10 @@ const ContextProvider = (props) => {
     resultData,
     input,
     setInput,
+    newChat,
   };
 
-  return (
-    <Context.Provider value={contextValue}>{props.children}</Context.Provider>
-  );
+  return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 };
 
 export default ContextProvider;
