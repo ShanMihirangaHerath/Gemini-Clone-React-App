@@ -97,11 +97,11 @@ const Main = () => {
             <div>
               <img src={assets.gallery_icon} alt="Gallery Icon" />
               <img src={assets.mic_icon} alt="Mic Icon" />
-              <img
+              {input ? <img
                 onClick={handleSend}
                 src={assets.send_icon}
                 alt="Send Icon"
-              />
+              /> : null}
             </div>
           </div>
           <p className="bottom-info">
